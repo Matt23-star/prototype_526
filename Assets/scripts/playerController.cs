@@ -23,13 +23,13 @@ public class playerController : MonoBehaviour
     private float isHurtTime = 0.5f;
     private bool isWhite = true;
 
-
     public GameObject exit;
     public LayerMask white_ground;
     public LayerMask black_ground;
 
     void Start()
     {
+        //deactivate the EXIT UI
         exit.SetActive(false);
         CheckColor();
         rb = GetComponent<Rigidbody2D>();
@@ -49,6 +49,7 @@ public class playerController : MonoBehaviour
         CheckColor();
     }
 
+    //Realize Move and Jump
     void Move()
     {
         float horizontalMove = Input.GetAxis("Horizontal");
@@ -60,6 +61,7 @@ public class playerController : MonoBehaviour
 
         //isLanded = Physics.CheckSphere(player.position, groundCheckRadius, ground);
 
+        //Jump once before landing
         if (Input.GetButtonDown("Jump"))
         {
             if (Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
@@ -75,45 +77,10 @@ public class playerController : MonoBehaviour
 
     void ChangeColor()
     {
+        //according to color, ignore the collison between Capsule and each tilemap.
         if (Input.GetButtonDown("ChangeColor"))
         {
-            //if ((CheckOverlap(white_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
-            //    || (CheckOverlap(black_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>())))
-            //{
-            //    if(CheckOverlap(white_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
-            //        print("there is an overlapping in White");
-
-            //    if (CheckOverlap(black_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>()))
-            //        print("there is an overlapping in Black");
-            //    return;
-
-            //}
-            //if (GetComponent<Renderer>().material.color.Equals(Color.white) )
-            //{
-            //    GetComponent<Renderer>().material.color = Color.black;
-            //    //if (CheckOverlap(white_ground))
-            //    //{
-            //    //    Debug.Log("overlap white");
-            //    //    tilemap_white.GetComponent<TilemapCollider2D>().enabled = true;
-            //    //    tilemap_black.GetComponent<TilemapCollider2D>().enabled = false;
-            //    //}else
-            //    //{
-            //    //    tilemap_black.GetComponent<TilemapCollider2D>().enabled = false;
-            //    //}
-            //}
-            //else { 
-            //    GetComponent<Renderer>().material.color = Color.white;
-            //    //if (CheckOverlap(black_ground))
-            //    //{
-            //    //    Debug.Log("overlap Black");
-            //    //    tilemap_black.GetComponent<TilemapCollider2D>().enabled = true;
-            //    //    tilemap_white.GetComponent<TilemapCollider2D>().enabled = false;
-            //    //} 
-            //    //else
-            //    //{
-            //    //    tilemap_white.GetComponent<TilemapCollider2D>().enabled = false;
-            //    //}
-            //}
+            
             if (isWhite)
             {
                 GetComponent<Renderer>().material.color = Color.black;
@@ -154,25 +121,18 @@ public class playerController : MonoBehaviour
         if (!isWhite)
         {
             Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), true);
-            //if (CheckOverlap(white_ground))
-            //{
-            //    Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), true);
-            //}
+
             if (!CheckOverlap(white_ground))
                 Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), false);
             //else print("there is an overlapping on white");
             if (Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
                 Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), false);
- 
+
         }
         else
         {
             Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), true);
 
-            //if (CheckOverlap(black_ground))
-            //{
-            //    Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), true);
-            //}
             if (!CheckOverlap(black_ground))
                 Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), false);
             //else print("there is an overlapping on black");
@@ -187,15 +147,12 @@ public class playerController : MonoBehaviour
         CapsuleCollider2D capsuleCollider = GetComponent<CapsuleCollider2D>();
         if (capsuleCollider == null) return false;
 
-        //Vector2 size = new Vector2(capsuleCollider.size.x * transform.localScale.x,capsuleCollider.size.y * transform.localScale.y);
-
         CapsuleDirection2D direction = capsuleCollider.direction;
 
         float angle = transform.eulerAngles.z;
         //find bug. the position lower than observed postion
         Collider2D overlapCollider = Physics2D.OverlapCapsule(capsuleCollider.bounds.center, capsuleCollider.size, direction, angle, ground);
         if (overlapCollider == null) return false;
-        //print(overlapCollider.ToString());
         return true;
     }
 
