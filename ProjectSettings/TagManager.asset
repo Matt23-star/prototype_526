@@ -3,15 +3,18 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Enemy
+  - Exit
+  - Success
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - black
   - Water
   - UI
-  - 
+  - white
   - 
   - 
   - 
@@ -46,4 +49,7 @@ TagManager:
     locked: 0
   - name: New Layer 2
     uniqueID: 3552665951
+    locked: 0
+  - name: New Layer 3
+    uniqueID: 4260323987
     locked: 0

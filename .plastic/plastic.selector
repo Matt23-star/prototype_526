@@ -1,4 +1,3 @@
-repository "Prototype@hfeng477@cloud"
+rep "Prototype@hfeng477@cloud"
   path "/"
-    br "/main"
-    co "/main"
+    smartbranch "/main"

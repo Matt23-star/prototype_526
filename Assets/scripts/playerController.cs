@@ -1,42 +1,278 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class playerController : MonoBehaviour
 {
 
-    public Rigidbody2D rb;
+    public Tilemap tilemap_white;
+    public Tilemap tilemap_black;
+    private Rigidbody2D rb;
     public float speed = 10f;
     public float jumpForce;
-    //public Transform player;
-    //public LayerMask ground;
-    //public float groundCheckRadius = 0.35f;
-    //public bool isLanded;
-    // Start is called before the first frame update
+    public float deathY = -10f;
+    public Text hpText;
+    private int hp = 3;
+    private float knockbackForce = 5f;
+    private bool isHurt = false;
+    private float isHurtTime = 0.5f;
+    private bool isWhite = true;
+
+
+    public GameObject exit;
+    public LayerMask white_ground;
+    public LayerMask black_ground;
+
     void Start()
     {
-        
+        exit.SetActive(false);
+        CheckColor();
+        rb = GetComponent<Rigidbody2D>();
+        Color playerColor = GetComponent<SpriteRenderer>().color;
+        isWhite = playerColor == Color.white; // Assuming white is the default color for 'white' state
     }
 
     // Update is called once per frame
     void Update()
     {
-        Move();
+        if (!isHurt)
+        {
+            Move();
+        }
+        ChangeColor();
+        CheckDeath();
+        CheckColor();
     }
 
     void Move()
     {
         float horizontalMove = Input.GetAxis("Horizontal");
-        if(horizontalMove != 0)
+        if (horizontalMove != 0)
         {
             //rb.velocity = new Vector2 (horizontalMove * speed * Time.deltaTime, rb.velocity.y);
             rb.velocity = new Vector2(horizontalMove * speed, rb.velocity.y);
         }
 
         //isLanded = Physics.CheckSphere(player.position, groundCheckRadius, ground);
+
         if (Input.GetButtonDown("Jump"))
         {
-            rb.velocity = new Vector2 (rb.velocity.x, jumpForce);
+            if (Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            }
+            else if (Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>()))
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            }
         }
     }
+
+    void ChangeColor()
+    {
+        if (Input.GetButtonDown("ChangeColor"))
+        {
+            //if ((CheckOverlap(white_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
+            //    || (CheckOverlap(black_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>())))
+            //{
+            //    if(CheckOverlap(white_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
+            //        print("there is an overlapping in White");
+
+            //    if (CheckOverlap(black_ground) && !Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>()))
+            //        print("there is an overlapping in Black");
+            //    return;
+
+            //}
+            //if (GetComponent<Renderer>().material.color.Equals(Color.white) )
+            //{
+            //    GetComponent<Renderer>().material.color = Color.black;
+            //    //if (CheckOverlap(white_ground))
+            //    //{
+            //    //    Debug.Log("overlap white");
+            //    //    tilemap_white.GetComponent<TilemapCollider2D>().enabled = true;
+            //    //    tilemap_black.GetComponent<TilemapCollider2D>().enabled = false;
+            //    //}else
+            //    //{
+            //    //    tilemap_black.GetComponent<TilemapCollider2D>().enabled = false;
+            //    //}
+            //}
+            //else { 
+            //    GetComponent<Renderer>().material.color = Color.white;
+            //    //if (CheckOverlap(black_ground))
+            //    //{
+            //    //    Debug.Log("overlap Black");
+            //    //    tilemap_black.GetComponent<TilemapCollider2D>().enabled = true;
+            //    //    tilemap_white.GetComponent<TilemapCollider2D>().enabled = false;
+            //    //} 
+            //    //else
+            //    //{
+            //    //    tilemap_white.GetComponent<TilemapCollider2D>().enabled = false;
+            //    //}
+            //}
+            if (isWhite)
+            {
+                GetComponent<Renderer>().material.color = Color.black;
+                isWhite = false;
+                print("white" + CheckOverlap(white_ground).ToString());
+                if (CheckOverlap(white_ground))
+                {
+                    Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), true);
+                }
+            }
+            else
+            {
+                GetComponent<Renderer>().material.color = Color.white;
+                isWhite = true;
+                print("black" + CheckOverlap(black_ground).ToString());
+                if (CheckOverlap(black_ground))
+                {
+                    Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), true);
+                }
+            }
+        }
+    }
+
+    void CheckDeath()
+    {
+        if (transform.position.y <= deathY)
+        {
+            RestartLevel();
+        }
+    }
+    void RestartLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    void CheckColor()
+    {
+        if (!isWhite)
+        {
+            Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), true);
+            //if (CheckOverlap(white_ground))
+            //{
+            //    Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), true);
+            //}
+            if (!CheckOverlap(white_ground))
+                Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), false);
+            //else print("there is an overlapping on white");
+            if (Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>()))
+                Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), false);
+ 
+        }
+        else
+        {
+            Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_white.GetComponent<TilemapCollider2D>(), true);
+
+            //if (CheckOverlap(black_ground))
+            //{
+            //    Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), true);
+            //}
+            if (!CheckOverlap(black_ground))
+                Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), false);
+            //else print("there is an overlapping on black");
+            if (Physics2D.IsTouching(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>()))
+                Physics2D.IgnoreCollision(GetComponent<CapsuleCollider2D>(), tilemap_black.GetComponent<TilemapCollider2D>(), false);
+
+        }
+    }
+
+    bool CheckOverlap(LayerMask ground)
+    {
+        CapsuleCollider2D capsuleCollider = GetComponent<CapsuleCollider2D>();
+        if (capsuleCollider == null) return false;
+
+        //Vector2 size = new Vector2(capsuleCollider.size.x * transform.localScale.x,capsuleCollider.size.y * transform.localScale.y);
+
+        CapsuleDirection2D direction = capsuleCollider.direction;
+
+        float angle = transform.eulerAngles.z;
+        //find bug. the position lower than observed postion
+        Collider2D overlapCollider = Physics2D.OverlapCapsule(capsuleCollider.bounds.center, capsuleCollider.size, direction, angle, ground);
+        if (overlapCollider == null) return false;
+        //print(overlapCollider.ToString());
+        return true;
+    }
+
+
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy") && !isHurt)
+        {
+            // Get the enemy's color
+            Color enemyColor = collision.gameObject.GetComponent<SpriteRenderer>().color;
+
+
+            // Check if the collision is on top of the enemy
+            if (collision.contacts[0].normal.y > 0.5)
+            {
+                if ((isWhite && enemyColor.Equals(Color.black)) || (!isWhite && enemyColor.Equals(Color.white)))
+
+                {
+                    // Logic to eliminate the enemy
+                    Destroy(collision.gameObject);  // Example of eliminating the enemy
+
+                    // Optionally, add a bounce effect to the player
+                    rb.velocity = new Vector2(rb.velocity.x, 10); // Adjust the Y velocity to give a bounce effect
+                }
+                else
+                {
+                    ApplyDamage(collision);
+                }
+            }
+            else
+            {
+                ApplyDamage(collision);
+            }
+
+        }
+
+
+    }
+
+    private void ApplyDamage(Collision2D collision)
+    {
+        isHurt = true;
+        hp -= 1;
+        UpdateHpText();
+
+        Vector2 knockbackDirection = transform.position.x < collision.gameObject.transform.position.x ? Vector2.left : Vector2.right;
+        rb.velocity = new Vector2(knockbackDirection.x * knockbackForce, rb.velocity.y);
+
+        if (hp <= 0)
+        {
+            RestartLevel();
+        }
+        else
+        {
+            StartCoroutine(ResetIsHurt());
+        }
+    }
+
+    void UpdateHpText()
+    {
+        hpText.text = "HP: " + hp;
+    }
+
+    IEnumerator ResetIsHurt()
+    {
+        yield return new WaitForSeconds(isHurtTime);
+        isHurt = false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Exit"))
+        {
+            exit.SetActive(true);
+            this.enabled = false;
+        }
+    }
+
 }
